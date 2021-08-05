@@ -184,7 +184,7 @@
 #define COND_N          "1110"
 
 /* Nova funcao */
-
+  
 #define ADDN           "101010" // 42d TODO
 #define ADDN_STR       "ADDN"
 #define ADDN_CODE       98
