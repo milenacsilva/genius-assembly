@@ -1,28 +1,6 @@
-; Hello World - Escreve mensagem armazenada na memoria na tela
-
-
-; ------- TABELA DE CORES -------
-; adicione ao caracter para Selecionar a cor correspondente
-
-; 0 branco							0000 0000
-; 256 marrom						0001 0000
-; 512 verde							0010 0000
-; 768 oliva							0011 0000
-; 1024 azul marinho					0100 0000
-; 1280 roxo							0101 0000
-; 1536 teal							0110 0000
-; 1792 prata						0111 0000
-; 2048 cinza						1000 0000
-; 2304 vermelho						1001 0000
-; 2560 lima							1010 0000
-; 2816 amarelo						1011 0000
-; 3072 azul							1100 0000
-; 3328 rosa							1101 0000
-; 3584 aqua							1110 0000
-; 3840 preto						1111 0000
-
 jmp main
 
+;------ Screens covers used in the game ------
 screen0line1 :  string "                                        "
 screen0line2 :  string "                                        "
 screen0line3 :  string "                                        "
@@ -452,7 +430,7 @@ screen13line23 : string "}     }}}}      }     }}}}}}  }    }   }"
 screen13line24 : string "}                                      }" 
 screen13line25 : string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
 screen13line26 : string "                                        " 
-screen13line27 : string "     press enter to return to menu      " 
+screen13line27 : string "     press enter to return to showMenu      " 
 screen13line28 : string "                                        " 
 screen13line29 : string "                                        " 
 screen13line30 : string "                                        "
@@ -552,89 +530,99 @@ screen16line30 : string "                                        "
 
 
 
-;---- Inicio do Programa Principal -----
+;------ Variables used in the program ------
 
-sequence : var #100
+; Stores all levels of the game
+levels : var #100
 
-sizeSequence : var #1
-static sizeSequence, #0
+; Stores the current level
+curLevel : var #1
 
-character : var #1
+; Stores the user's pressed key 
+pressedKey : var #1
 
-levelFlag : var #1 ; 1 = sucesso, 0 = erro
+; Stores the result of a level
+; 1 = LEVEL_SUCCESS 
+; 0 = LEVEL_FAIL
+levelFlag : var #1
 
+; Stores the user's curent score
 score : var #3
 
 ; 0: 1, 1: 2, 2: , 3: S
 
+;---- Start of the program -----
 main:
-
-	loadn r5,#13
-	loadn r6,#0
+	loadn r5, #13
+	loadn r6, #0
 	
-	mainLoop:
-		store sizeSequence,r6
-		loadn r4,#100
+	; Game start/restart
+	playAgain:
+		store curLevel, r6  
+		loadn r4, #100
 		
-		call menu
-		call startSequence
+		call showMenu
+		call initializeAllLevels
 		
-		call delay2
-		call startScreen
+		call shortDelay
+		call showStartScreen
 		
-		call delay
+		call longDelay
 		
-		load r7,sizeSequence
+		load r7, curLevel
 		
-		loop:
-			call printScoreUp
+		playing:
+			call showScoreUp
 		
 			inc r7
-			store sizeSequence,r7
-			call printSequence
+			store curLevel, r7
+			call showLevel
 			
-			call verifySequence
+			call verifyLevel
 			
-			call delay
+			call longDelay
 			
-			load r1, levelFlag
-			loadn r2,#1
+			load r1, levelFlag 
+			loadn r2, #1
 			
-			
-			cmp r1,r2
-			jeq loop
+			; If the user has completed the level correctly
+			cmp r1, r2  
+			jeq playing
 		
-		call recebeChar
-		load r4,character
+		; Gets the user's pressed key
+		getMenuPressedKey:
+			call getChar  
+			load r4, pressedKey
 		
-		cmp r4,r5
-		jeq mainLoop
-		
+			; If the user wants to play again
+			cmp r4, r5
+			jeq playAgain 
+			jmp getMenuPressedKey
+
 	halt
 
-
-printScoreUp:
-
-	call convertScore
-
+;---- Shows the current user's score in the upper-left corner ---- 
+showScoreUp:
 	push r0
 	push r1
 	push r2
 	push r3
 	
-	loadn r0,#score
-	loadn r1,#6
-	loadn r3,#9
+	call convertScore
 	
-	printScoreUpLoop:
-		loadi r2,r0
-		outchar r2,r1
+	loadn r0, #score
+	loadn r1, #6
+	loadn r3, #9
+	
+	showScoreUpLoop:
+		loadi r2, r0
+		outchar r2, r1
 		
 		inc r0
 		inc r1
 		
-		cmp r1,r3
-		jne printScoreUpLoop
+		cmp r1, r3
+		jne showScoreUpLoop
 	
 	pop r3
 	pop r2
@@ -643,7 +631,7 @@ printScoreUp:
 	
 	rts
 
-
+;---- Converts the current user's curent score ---- 
 convertScore:
 	push r0
 	push r1
@@ -653,18 +641,19 @@ convertScore:
 	push r5
 	push r6
 	
-	loadn r0,#score
-	loadn r1,#48
-	load r2,sizeSequence	
-	loadn r3,#100
-	loadn r4,#10
-	loadn r6,#0
+	loadn r0, #score
+	loadn r1, #48
+	load r2, curLevel	
+	loadn r3, #100
+	loadn r4, #10
+	loadn r6, #0
 	
+	; Converts each digit of the score to a string
 	convertScoreLoop:
 		div r5,r2,r3 ; r5 = r2/r3
-		add r5,r5,r1 ;Pega o valor inteiro e passa para caractere: + 48
+		add r5,r5,r1 ; Converts the int to char
 		
-		storei r0,r5 ;Armazena na string e incrementa
+		storei r0,r5 ; Stores the digit and increments 
 		inc r0
 		
 		mod r2,r2,r3 ; r2 = r2 % r5
@@ -684,8 +673,8 @@ convertScore:
 	
 	rts
 
-
-menu:
+;---- Shows the game's menu ---- 
+showMenu:
 	push r1
 	push r2
 	push r3 
@@ -697,44 +686,45 @@ menu:
 	loadn r2, #0
 	
 	call printScreen
-	call delay2
+	call shortDelay
 	
 	loadn r2, #0
 	
-	loadn r1, #screen6line1 ;G
+	loadn r1, #screen6line1 ; G
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen7line1 ;E
+	loadn r1, #screen7line1 ; E
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen8line1 ;N
+	loadn r1, #screen8line1 ; N
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen9line1 ;I
+	loadn r1, #screen9line1 ; I
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen10line1 ;U
+	loadn r1, #screen10line1 ; U
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen11line1 ;S
+	loadn r1, #screen11line1 ; S
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
-	loadn r1, #screen12line1; Assembly / Press any key
+	loadn r1, #screen12line1 ; Assembly / Press any key
 	call printScreenOverlap
-	call delay2
+	call shortDelay
 	
 	loadn r6, #3840
 	loadn r5, #256
 	loadn r4, #255
 	loadn r2, #0
 	
-	menuLoop:
+	; Waits for the user to press a key and shows the colors changing
+	showMenuLoop:
 		add r2,r2,r5
 	
 		loadn r1, #screen6line1 ;G
@@ -755,16 +745,16 @@ menu:
 		loadn r1, #screen11line1 ;S
 		call printScreenOverlap
 		
-		call delay2
+		call shortDelay
 		
-		cmp r2,r6 ; Caso a cor ultrapasse 3840, ela retorna para 0
+		cmp r2,r6 ; Loops through the colors
 		jne menuElse
 		loadn r2, #0
 		
 		menuElse:
-		inchar r3 
+		inchar r3
 		cmp r3, r4	
-		jeq menuLoop
+		jeq showMenuLoop
 	
 	pop r6
 	pop r5
@@ -775,20 +765,20 @@ menu:
 	
 	rts
 
-
-printSequence:
-	push r0 ; sequence
+;---- Show's the current level ----
+showLevel:
+	push r0 ; levels
 	push r1 ; i
-	push r2 ; size sequence
+	push r2 ; curLevel
 	push r3 ; auxiliar
 	push r4 ; auxiliar
 	
-	loadn r0,#sequence
-	load r2,sizeSequence
-	loadn r1,#0
+	loadn r0, #levels
+	load r2, curLevel
+	loadn r1, #0
 	
-	mov r3,r1
-	mov r4,r2
+	mov r3, r1
+	mov r4, r2
 	
 	loadn r1, #screen16line1
 	loadn r2, #0
@@ -798,15 +788,16 @@ printSequence:
 	mov r1,r3
 	mov r2,r4
 	
-	printSequenceLoop:
-		call switchPrintColor
-		call delay2
+	; Loops and shows each part of the sequence
+	showLevelLoop:
+		call switchBlinkColor
+		call shortDelay
 		
 		inc r1
 		inc r0
 		
-		cmp r1,r2
-		jne printSequenceLoop
+		cmp r1, r2
+		jne showLevelLoop
 	
 	loadn r1, #screen16line1
 	loadn r2, #3840
@@ -821,8 +812,9 @@ printSequence:
 	
 	rts
 
-;	r0 = endereco da tela que contém o número a ser piscado
-switchPrintColor:
+;---- Switch throught the genius buttons to blink a specific color ----
+;	  r0 = contains the number of the button to be blinked
+switchBlinkColor:
 	push r0
 	push r1
 	push r2
@@ -848,47 +840,45 @@ switchPrintColor:
 	cmp r1,r7
 	jeq printFour
 
-	jmp switchPrintColor_Fail
+	jmp switchBlinkColorDefault
 
 	printOne:
 		loadn r1, #screen2line1
 		loadn r2, #3584
 		loadn r3, #512
 		
-		jmp switchPrintColor_Return
+		jmp switchBlinkColorBreak
 		
 	printTwo:
 		loadn r1, #screen3line1
 		loadn r2, #3328
 		loadn r3, #2304
 		
-		jmp switchPrintColor_Return
+		jmp switchBlinkColorBreak
 		
 	printThree:
 		loadn r1, #screen4line1
 		loadn r2, #0
 		loadn r3, #2816
 		
-		jmp switchPrintColor_Return
+		jmp switchBlinkColorBreak
 		
 	printFour:
 		loadn r1, #screen5line1
 		loadn r2, #1536
 		loadn r3, #3072
 		
-		jmp switchPrintColor_Return
+		jmp switchBlinkColorBreak
 	
-	switchPrintColor_Return:
-		
+	switchBlinkColorBreak:
 		call printScreenOverlap
 		
-		call delay
+		call longDelay
 		
 		mov r2, r3
 		call printScreenOverlap
 	
-	switchPrintColor_Fail:
-		
+	switchBlinkColorDefault:	
 		pop r7
 		pop r6
 		pop r5
@@ -900,67 +890,59 @@ switchPrintColor:
 		
 		rts
 
-verifySequence:
-	push r0 ; sequence
+;---- Gets and verifies the user input sequence for a level ----
+verifyLevel:
+	push r0 ; levels
 	push r1 ; i
-	push r2 ; size sequence
+	push r2 ; size levels
 	push r3 ; inchar
-	push r4 ; #49
-	push r5 ; men[i]
+	push r4 ; #48
+	push r5 ; mem[i]
 	push r6 ; #1
 	push r7 ; auxiliar
 	
-	loadn r0,#sequence
+	loadn r0,#levels
 	loadn r1,#0
 	load r2,sizeSequence
 	loadn r4,#48
 	
-	verifySequence_Loop:
-		
-		call recebeChar
-		load r3,character
+	verifySequenceLoop		
+		call getChar; Stores the user's pressed key 
+		load r3, pressedKey
 		
 		sub r3,r3,r4
-		store character,r3
+		store pressedKey, r3
 		
-		loadn r3,#character
+		loadn r3, #pressedKey
 		
 		mov r7, r0
 		mov r0, r3
-		
-		call switchPrintColor
+	
+		call switchBlinkColor
 		
 		mov r0, r7
 		
 		loadi r5, r0
-		load r3,character
+		load r3, pressedKey
 		
-		cmp r5,r3
-		jne fail
+		cmp r5, r3
+		jne levelFail
 
 		inc r1
 		inc r0
 
 		cmp r1,r2
-		jne verifySequence_Loop
+		jne verifySequenceLoop
 	
-	loadn r6,#1 ; Colocando a flag como sucesso
-	store levelFlag,r6
+	; If the user has sucessfuly finished the level puts
+	; the LEVEL_SUCCESS flag
+	loadn r6, #1 
+	store levelFlag, r6
 	
-	pop r7
-	pop r6
-	pop r5
-	pop r4
-	pop r3
-	pop r2
-	pop r1
-	pop r0
+	jmp verifyLevelEnd
 	
-	rts
-	
-fail:
-
-	; piscar tudo de vermelho
+; Blinks everything red
+levelFail:
 	loadn r1, #screen1line1
 	loadn r2, #2304
 
@@ -982,17 +964,20 @@ fail:
 	
 	call printScreenOverlap
 	
-	call delay
+	call longDelay
 	
 	loadn r1, #screen13line1
 
 	call printScreen
 	
-	call delay
+	call longDelay
 	
-	loadn r2, #0 ; Colocando a flag como falha
+	; If the user has failed the level 
+	; puts the LEVEL_FAIL flag
+	loadn r2, #0  
 	store levelFlag, r2
 	
+verifyLevelEnd:	
 	pop r7
 	pop r6
 	pop r5
@@ -1004,24 +989,25 @@ fail:
 	
 	rts
 	
-
-recebeChar:
+getChar:
 	push r1
 	push r0
 
-	loadn r1, #255
+	loadn r1, #25
+	
+	5
 	recebeCharLoop:
 		inchar r0 
-		cmp r0, r1
+		cmp r0, r
 		jeq recebeCharLoop
-
-	store character, r0 
+; Stores the user's pressed key 
+	store pressedKey, r0 
 
 	pop r0
 	pop r1
 	rts
 
-delay:
+longDelay:
 	push r0
 	push r1
 	push r2
@@ -1045,7 +1031,7 @@ delay:
 	
 	rts
 	
-delay2:
+shortDelay:
 	push r0
 	push r1
 	push r2
@@ -1069,14 +1055,14 @@ delay2:
 	
 	rts
 
-startScreen:
+showStartScreen:
 	
 	loadn r1, #screen1line1
 	loadn r2, #0
 	
 	call printScreen
 	
-	call printScoreUp
+	call showScoreUp
 	
 	loadn r1, #screen14line1
 	loadn r2, #0
@@ -1156,7 +1142,7 @@ getRand:
 	pop r0
 	rts
 
-startSequence:
+initializeAllLevels:
 
 	push r1
 	push r2
@@ -1164,7 +1150,7 @@ startSequence:
 	push r4
 	
 	loadn r1, #0
-	loadn r2, #sequence
+	loadn r2, #levels
 	loadn r4, #100
 	
 	startSequence_Loop:
