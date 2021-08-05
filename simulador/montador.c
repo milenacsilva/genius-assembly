@@ -1,4 +1,4 @@
-// Para incluir uma nova INSTRUCAO, e' necessario mexer em 3 ugares diferentes:
+// Para incluir uma nova INSTRUCAO, e' necessario mexer em 3 lugares diferentes:
 // 1) Definir os separadores da Instrucao e quantas linhas do EXE (mif) ela necessita:
     /*  case LOAD_CODE :
         case STORE_CODE :

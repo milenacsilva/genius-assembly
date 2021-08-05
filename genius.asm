@@ -549,6 +549,13 @@ levelFlag : var #1
 ; Stores the user's curent score
 score : var #3
 
+; Seed for pseudoRandomGenerator
+seed : var #1
+static seed, #89
+
+; Random level button number
+rand : var #1
+
 ; 0: 1, 1: 2, 2: , 3: S
 
 ;---- Start of the program -----
@@ -903,10 +910,10 @@ verifyLevel:
 	
 	loadn r0,#levels
 	loadn r1,#0
-	load r2,sizeSequence
+	load r2, curLevel
 	loadn r4,#48
 	
-	verifySequenceLoop		
+	verifySequenceLoop:		
 		call getChar; Stores the user's pressed key 
 		load r3, pressedKey
 		
@@ -941,8 +948,8 @@ verifyLevel:
 	
 	jmp verifyLevelEnd
 	
-; Blinks everything red
-levelFail:
+	; Blinks everything red
+	levelFail:
 	loadn r1, #screen1line1
 	loadn r2, #2304
 
@@ -977,7 +984,7 @@ levelFail:
 	loadn r2, #0  
 	store levelFlag, r2
 	
-verifyLevelEnd:	
+	verifyLevelEnd:	
 	pop r7
 	pop r6
 	pop r5
@@ -988,25 +995,26 @@ verifyLevelEnd:
 	pop r0
 	
 	rts
-	
+
+;---- Gets the input char  ----
 getChar:
 	push r1
 	push r0
 
-	loadn r1, #25
-	
-	5
+	loadn r1, #255
 	recebeCharLoop:
 		inchar r0 
-		cmp r0, r
+		cmp r0, r1
 		jeq recebeCharLoop
-; Stores the user's pressed key 
+
 	store pressedKey, r0 
 
 	pop r0
 	pop r1
+	
 	rts
 
+;---- Long delay for print screens ----
 longDelay:
 	push r0
 	push r1
@@ -1031,6 +1039,7 @@ longDelay:
 	
 	rts
 	
+;---- Short delay for print screens ----
 shortDelay:
 	push r0
 	push r1
@@ -1055,8 +1064,8 @@ shortDelay:
 	
 	rts
 
+;---- Shows the starting screen ----
 showStartScreen:
-	
 	loadn r1, #screen1line1
 	loadn r2, #0
 	
@@ -1092,13 +1101,8 @@ showStartScreen:
 	rts
 
 
-;	Gera um número pseudo-aleatório entre 0 e 498
-;	Utilizando o algoritmo The Linear Congruential Generator
-;	(seed*2 + 3) mod 499
-
-seed : var #1
-static seed, #89
-
+;---- Gerates an random number between 0 and 498 using a linear ----
+;     congruential generator algorithm: (seed*2 + 3) mod 499
 pseudoRandomGenerator:
 	push r0
 	push r1
@@ -1122,11 +1126,7 @@ pseudoRandomGenerator:
 	pop r0
 	rts
 
-;	Gera um número pseudo-aleatório entre 0 e 3
-;	(generateRand) mod 4
-
-rand : var #1
-
+;---- Gets a random number between 0 and 3 to initialize the sequence ----
 getRand:
 	push r0
 	push r1
@@ -1142,8 +1142,8 @@ getRand:
 	pop r0
 	rts
 
+;---- Initialize all levels with a random button at the start of the game ----
 initializeAllLevels:
-
 	push r1
 	push r2
 	push r3
