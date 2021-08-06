@@ -73,6 +73,7 @@ Do todos os comandos...
 #define INC	36      // "100100"; -- INC Rx / DEC Rx                 		-- Rx <- Rx + 1 / Rx <- Rx - 1  -- b6= INC/DEC : 0/1	Format: < inst(6) | Rx(3) | b6 | xxxxxx >
 #define LMOD 37     // "100101"; -- MOD Rx Ry Rz   			-- Rx <- Ry MOD Rz 	  	Format: < inst(6) | Rx(3) | Ry(3) | Rz(3)| x >
 
+#define ADDN 42 
 
 // Logic Instructions (All should begin wiht "01"):
 #define LOGIC 1
@@ -92,8 +93,6 @@ Do todos os comandos...
 #define POP	6       // "000110"; -- POP Rx  / POP FR   -- SP++ | Rx <- M[SP]  / FR <- M[SP]	  			  : b6=Rx/FR: 0/1		Format: < inst(6) | Rx(3) | b6 | xxxxxx >
 
 
-#define ADDN 42
-
 // Control Instructions:
 #define NOP	0       // "000000"; -- NOP            -- Do Nothing	 						Format: < inst(6) | xxxxxxxxxx >
 #define HALT 15     // "001111"; -- HALT           -- Stop Here								Format: < inst(6) | xxxxxxxxxx >
@@ -111,8 +110,6 @@ Do todos os comandos...
 #define EQUAL 2
 #define LESSER 1
 #define GREATER 0
-
-// New instruction
 
 //#include <curses.h>     //  Novo Terminal cheio de funcoes!!!
 #include <stdlib.h>     // Rand
@@ -138,10 +135,10 @@ typedef struct _resultadoUla{
 void le_arquivo(void);
 
 //processa uma linha completa e retorna o número codificado
-int processa_linha(char* linha); 
+int processa_linha(char* linha);
 
 // Funcao que separa somente o pedaco de interesse do IR;
-int pega_pedaco(int ir, int a, int b); 
+int pega_pedaco(int ir, int a, int b);
 
 // Rotate Left 16 bits
 unsigned int _rotl(const unsigned int value, int shift);
@@ -157,25 +154,25 @@ int kbhit(void)
   struct termios oldt, newt;
   int ch;
   int oldf;
- 
+
   tcgetattr(STDIN_FILENO, &oldt);
   newt = oldt;
   newt.c_lflag &= ~(ICANON | ECHO);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
   oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
   fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
- 
+
   ch = getchar();
- 
+
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
   fcntl(STDIN_FILENO, F_SETFL, oldf);
- 
+
   if(ch != EOF)
   {
     ungetc(ch, stdin);
     return 1;
   }
- 
+
   return 0;
 }
 
@@ -190,7 +187,7 @@ int main()
 	int M1=0, M2=0, M3=0, M4=0, M5=0, M6=0;
 	int selM1=0, selM2=0, selM3=0, selM4=0, selM5=0, selM6=0;
 	int LoadReg[8] = {0};
-	int carry=0;// Flag do IR que indica se a ULA vai fazer operação com carry ou não 
+	int carry=0;// Flag do IR que indica se a ULA vai fazer operação com carry ou não
 	int opcode=0;
 	int temp=0;
 	unsigned char state=0; // reset
@@ -211,7 +208,7 @@ inicio:
 	// Loop principal do processador: Nunca para!!
 loop:
 
-	//key = getchar();   
+	//key = getchar();
 
 	// Executa Load dos Registradores
 	if(LoadIR) IR = DATA_OUT;
@@ -236,7 +233,7 @@ loop:
 	rx = pega_pedaco(IR,9,7);
 	ry = pega_pedaco(IR,6,4);
 	rz = pega_pedaco(IR,3,1);
-	
+
 	// Coloca valor do Mux2 para o registrador com Load
 	if(LoadReg[rx]) reg[rx] = M2;
 
@@ -361,7 +358,7 @@ loop:
 					// PC++;
 					selM1 = sPC;
 					RW = 0;
-					LoadMAR = 1; 
+					LoadMAR = 1;
 					IncPC = 1;
 					// -----------------------------
 					state=STATE_EXECUTE;
@@ -369,7 +366,11 @@ loop:
 
 				case LOADINDEX:
 					// reg[rx] = MEMORY[reg[ry]];
-					
+					selM4 = ry;
+					selM1 = sM4;
+					RW = 0;
+					selM2 = sDATA_OUT;
+					LoadReg[rx] = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
@@ -377,25 +378,44 @@ loop:
 				case STORE:
 					//MAR = MEMORY[PC];
 					//PC++;
-					
+					selM1 = sPC;
+					RW = 0;
+					LoadMAR = 1;
+					IncPC = 1;
 					// -----------------------------
 					state=STATE_EXECUTE;
 					break;
 
 				case STOREINDEX:
 					//mem[reg[rx]] = reg[ry];
-					
+					selM4 = rx;
+					selM1 = sM4;
+					RW = 1;
+					selM3 = ry;
+					selM5 = sM3;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
 				case MOV:
-					
+					if (pega_pedaco(IR, 0, 0) == 0) {
+						// reg[rx] = reg[ry];
+						selM4 = ry;
+						selM2 = sM4;
+						LoadReg[rx] = 1;
+					} else if (pega_pedaco(IR, 1, 1) == 0) {
+						// reg[rx] = SP;
+						selM2 = sSP;
+						LoadReg[rx] = 1;
+					} else {
+						// SP = reg[rx];
+						selM4 = rx;
+						LoadSP = 1;
+					}
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
-					// reg[rx] += mem[PC];
     		    case ADDN:
 	          		// reg[rx] += reg[ry];
 					selM3 = rx;
@@ -413,28 +433,43 @@ loop:
 				case SUB:
 				case MULT:
 				case DIV:
-				
 				case LMOD:
 				case LAND:
 				case LOR:
 				case LXOR:
 				case LNOT:
 					// reg[rx] = reg[ry] + reg[rz]; // Soma ou outra operacao
-					
+					selM3 = ry;
+					selM4 = rz;
+					OP = opcode;
+					carry = pega_pedaco(IR,0,0);
+					selM2 = sULA;
+					LoadReg[rx] = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
 				case INC:
 					//reg[rx]++;                                  // Inc Rx ou DEC
-					
+					selM3 = rx;
+					selM4 = 8;  // 8 para selecionar o nr. 1 como entrada do MUX4
+
+					if(pega_pedaco(IR,6,6) == 0) OP = ADD;  // Se IR6 = 0 --> INC
+					else OP = SUB;                          // Se IR6 = 1 --> DEC
+
+					selM2 = sULA;
+					LoadReg[rx] = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
 				case CMP:   // seta 3 flags: maior, menor ou igual
 					//if(rx == ry)
-					
+					selM3 = rx;
+					selM4 = ry;
+					OP = CMP;
+					selM6 = sULA;
+					LoadFR  = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
@@ -450,7 +485,7 @@ loop:
 								if(pega_pedaco(IR,6,5)==2) // ROTATE LEFT
 									reg[rx] = _rotl(reg[rx],pega_pedaco(IR,3,0));
 								else
-									reg[rx] = _rotr(reg[rx],pega_pedaco(IR,3,0)); 
+									reg[rx] = _rotr(reg[rx],pega_pedaco(IR,3,0));
 								break;
 					}
 					FR[3] = 0; // -- FR = <...|zero|equal|lesser|greater>
@@ -461,7 +496,7 @@ loop:
 					state=STATE_FETCH;
 					break;
 
-				case JMP: 
+				case JMP:
 					COND = pega_pedaco(IR,9,6);
 
 					if((COND == 0)                       	                      // NO COND
@@ -492,27 +527,67 @@ loop:
 					break;
 
 				case CALL:
-					
-					state=STATE_FETCH;
+					COND = pega_pedaco(IR,9,6);
+
+					if( (COND == 0) 											  // NO COND
+							|| (FR[0]==1 && (COND==7))                            // GREATER
+							|| ((FR[2]==1 || FR[0]==1) && (COND==9))  			  // GREATER EQUAL
+							|| (FR[1]==1 && (COND==8))                            // LESSER
+							|| ((FR[2]==1 || FR[1]==1) && (COND==10)) 			  // LESSER EQUAL
+							|| (FR[2]==1 && (COND==1))                            // EQUAL
+							|| (FR[2]==0 && (COND==2))  						  // NOT EQUAL
+							|| (FR[3]==1 && (COND==3))  						  // ZERO
+							|| (FR[3]==0 && (COND==4))  						  // NOT ZERO
+							|| (FR[4]==1 && (COND==5))  						  // CARRY
+							|| (FR[4]==0 && (COND==6))  						  // NOT CARRY
+							|| (FR[5]==1 && (COND==11)) 						  // OVERFLOW
+							|| (FR[5]==0 && (COND==12)) 						  // NOT OVERFLOW
+							|| (FR[6]==1 && (COND==14)) 						  // NEGATIVO
+							|| (FR[9]==1 && (COND==13))) { 						  // DIVBYZERO
+						// MEMORY[SP] = PC;
+						// SP--;
+						// PC = MEMORY[PC];
+
+						RW = 1;
+						selM1 = sSP;
+						selM5 = sPC;
+						DecSP = 1;
+						state=STATE_EXECUTE;
+					}
+					else {
+						//PC++;
+						IncPC = 1;
+						state=STATE_FETCH;
+					}
 					// -----------------------------
 					break;
 
 				case PUSH:
-					
+					selM1 = sSP;
+					RW = 1;
+
+					if(pega_pedaco(IR,6,6) == 0) // Registrador
+						//MEMORY[SP] = reg[rx];
+						selM3 = rx;
+					else  // FR
+						selM3 = 8;  // com 8 entra o FR no M3
+
+					selM5 = sM3;
+					DecSP = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
 				case POP:
 					//SP++;
-					
+					IncSP = 1;
 					// -----------------------------
 					state=STATE_EXECUTE;
 					break;
 
 				case RTS:
 					// SP++;
-					
+					IncSP = 1;
 					// -----------------------------
 					state=STATE_EXECUTE;
 					break;
@@ -523,18 +598,18 @@ loop:
 					state=STATE_FETCH;
 					break;
 
-				case HALT:        
+				case HALT:
 					// -----------------------------
 					state=STATE_HALTED;
 					break;
 
-				case NOP:         
+				case NOP:
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
 
-				case BREAKP: 
-					key = getchar(); 
+				case BREAKP:
+					key = getchar();
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
@@ -569,7 +644,7 @@ loop:
 					selM5 = sM3;
 					// -----------------------------
 					state=STATE_FETCH;
-					break; 
+					break;
 
 				case CALL:
 					selM1 = sPC;
@@ -577,23 +652,35 @@ loop:
 					LoadPC = 1;
 					// -----------------------------
 					state=STATE_FETCH;
-					break; 
+					break;
 
 				case POP:
-					
+					selM1 = sSP;
+					RW = 0;
+					if(pega_pedaco(IR,6,6) == 0) { // Registrador
+						//reg[rx] = MEMORY[SP];
+						selM2 = sDATA_OUT;
+						LoadReg[rx] = 1;
+					}
+					else { // FR
+						selM6 = sDATA_OUT;
+						LoadFR = 1;
+					}
 					// -----------------------------
 					state=STATE_FETCH;
-					break; 
+					break;
 
 				case RTS:
 					//PC = MEMORY[SP];
-					
+					selM1 = sSP;
+					RW = 0;
+					LoadPC = 1;
 					// -----------------------------
 					state=STATE_EXECUTE2;
 					break;
 
 				case PUSH:
-					
+					// nao sei
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
@@ -608,7 +695,7 @@ loop:
 
 			//case RTS:
 			//PC++;
-			
+			IncPC = 1;
 			// -----------------------------
 			state=STATE_FETCH;
 			break;
@@ -626,7 +713,7 @@ loop:
 
 	// Selecao do Mux4   --> Tem que vir antes do M1 e do M2 que usam M4
 	if(selM4 == 8) M4 = 1;  // Seleciona 1 para fazer INC e DEC
-	else M4 = reg[selM4]; 
+	else M4 = reg[selM4];
 
 	// Selecao do Mux1
 	if      (selM1 == sPC)  M1 = PC;
@@ -647,11 +734,11 @@ loop:
 	// Converte o vetor FR para int
 	// TODO talvez fazer isso depois da operação da ula?
 	temp = 0;
-	for(i=16; i--; )        
-		temp = temp + (int) (FR[i] * (pow(2.0,i))); 
+	for(i=16; i--; )
+		temp = temp + (int) (FR[i] * (pow(2.0,i)));
 
 	if(selM3 == 8) M3 = temp;  // Seleciona com 8 o FR
-	else M3 = reg[selM3]; 
+	else M3 = reg[selM3];
 
 	// Operacao da ULA
 	resultadoUla = ULA(M3, M4, OP, carry);
@@ -661,7 +748,7 @@ loop:
 	else if (selM2 == sDATA_OUT) M2 = DATA_OUT;
 	else if (selM2 == sM4)  M2 = M4;
 	//else if (selM2 == sTECLADO) M2 = TECLADO;// TODO: selM2 com teclado
-	else if (selM2 == sSP)  M2 = SP; 
+	else if (selM2 == sSP)  M2 = SP;
 
 	// Selecao do Mux5
 	if (selM5 == sPC) M5 = PC;
@@ -764,6 +851,7 @@ int pega_pedaco(int ir, int a, int b) {
 	   e aplicando uma máscara de n-bits, onde n = nr. 1's entre a e b
 	   Obs.:    & - AND
 	   >> - right-shift
+
 	   ex.: Rx = 0x0007 & IR >> 7;
 	   */
 	pedaco = ((pow(2,(a-b+1)))-1);
@@ -813,26 +901,26 @@ ResultadoUla ULA(unsigned int x, unsigned int y, unsigned int OP, int carry) {
 					if(result > MAX_VAL){// Carry
 						auxFRbits[CARRY] = 1;
 						result -= MAX_VAL;
-					}else 
+					}else
 						auxFRbits[CARRY] = 0;
 
-					break;	
+					break;
 				case SUB:
 					result = x-y;
 
 					if(result < 0)// Negative
 						auxFRbits[NEGATIVE] = 1;
-					else 
+					else
 						auxFRbits[NEGATIVE] = 0;
-					break;	
+					break;
 				case MULT:
 					result = x*y;
 
 					if(result > MAX_VAL)// Arithmetic overflow
 						auxFRbits[ARITHMETIC_OVERFLOW] = 1;
-					else 
+					else
 						auxFRbits[ARITHMETIC_OVERFLOW] = 0;
-					break;	
+					break;
 				case DIV:
 					if(y==0) {
 						result = 0;
@@ -841,7 +929,7 @@ ResultadoUla ULA(unsigned int x, unsigned int y, unsigned int OP, int carry) {
 						result = x/y;
 						auxFRbits[DIV_BY_ZERO] = 0;
 					}
-					break;	
+					break;
 				case LMOD:
 					if(y==0) {
 						result = 0;
@@ -850,7 +938,7 @@ ResultadoUla ULA(unsigned int x, unsigned int y, unsigned int OP, int carry) {
 						result = x%y;
 						auxFRbits[DIV_BY_ZERO] = 0;
 					}
-					break;	
+					break;
 				default:
 					result = x;
 			}
@@ -905,8 +993,8 @@ ResultadoUla ULA(unsigned int x, unsigned int y, unsigned int OP, int carry) {
 	}
 
 	unsigned int auxFR = 0;
-	for(int i=16; i--; )        
-		auxFR = auxFR + (int) (auxFRbits[i] * (pow(2.0,i))); 
+	for(int i=16; i--; )
+		auxFR = auxFR + (int) (auxFRbits[i] * (pow(2.0,i)));
 
 	ResultadoUla resultadoUla;
 	resultadoUla.result = result;
