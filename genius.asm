@@ -412,25 +412,25 @@ screen13line5 :  string "                                        "
 screen13line6 :  string "                                        " 
 screen13line7 :  string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
 screen13line8 :  string "}                                      }" 
-screen13line9 :  string "}     }}}}    }}}}}   }    }  }}}}}}   }" 
-screen13line10 : string "}    }    }  }     }  }}  }}  }        }" 
-screen13line11 : string "}    }       }     }  } }} }  }        }" 
-screen13line12 : string "}    }  }}}  }}}}}}}  }    }  }}}}}    }" 
-screen13line13 : string "}    }    }  }     }  }    }  }        }" 
-screen13line14 : string "}    }    }  }     }  }    }  }        }" 
-screen13line15 : string "}     }}}}   }     }  }    }  }}}}}}   }" 
+screen13line9 :  string "}     }}}}    }}}}   }    }  }}}}}}    }" 
+screen13line10 : string "}    }    }  }    }  }}  }}  }         }" 
+screen13line11 : string "}    }       }    }  } }} }  }         }" 
+screen13line12 : string "}    }  }}}  }}}}}}  }    }  }}}}}     }" 
+screen13line13 : string "}    }    }  }    }  }    }  }         }" 
+screen13line14 : string "}    }    }  }    }  }    }  }         }" 
+screen13line15 : string "}     }}}}   }    }  }    }  }}}}}}    }" 
 screen13line16 : string "}                                      }" 
-screen13line17 : string "}     }}}}   }     }  }}}}}}  }}}}}    }" 
-screen13line18 : string "}    }    }  }     }  }       }    }   }" 
-screen13line19 : string "}    }    }  }     }  }       }    }   }" 
-screen13line20 : string "}    }    }  }     }  }}}}}   }}}}}    }" 
-screen13line21 : string "}    }    }   }   }   }       }    }   }" 
-screen13line22 : string "}    }    }    } }    }       }    }   }" 
-screen13line23 : string "}     }}}}      }     }}}}}}  }    }   }" 
+screen13line17 : string "}     }}}}   }    }  }}}}}}  }}}}}     }" 
+screen13line18 : string "}    }    }  }    }  }       }    }    }" 
+screen13line19 : string "}    }    }  }    }  }       }    }    }" 
+screen13line20 : string "}    }    }  }    }  }}}}}   }}}}}     }" 
+screen13line21 : string "}    }    }  }    }  }       }    }    }" 
+screen13line22 : string "}    }    }   }  }   }       }    }    }" 
+screen13line23 : string "}     }}}}     }}    }}}}}}  }    }    }" 
 screen13line24 : string "}                                      }" 
 screen13line25 : string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
 screen13line26 : string "                                        " 
-screen13line27 : string "     press enter to return to showMenu      " 
+screen13line27 : string "     press enter to return to menu      " 
 screen13line28 : string "                                        " 
 screen13line29 : string "                                        " 
 screen13line30 : string "                                        "
@@ -528,7 +528,36 @@ screen16line28 : string "                                        "
 screen16line29 : string "                                        " 
 screen16line30 : string "                                        "
 
-
+screen17line1 :  string "                                        " 
+screen17line2 :  string "                                        " 
+screen17line3 :  string "                                        " 
+screen17line4 :  string "                                        " 
+screen17line5 :  string "                                        " 
+screen17line6 :  string "                                        " 
+screen17line7 :  string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
+screen17line8 :  string "}                                      }" 
+screen17line9 :  string "}        }    }   }}}}   }    }        }" 
+screen17line10 : string "}         }  }   }    }  }    }        }" 
+screen17line11 : string "}          }}    }    }  }    }        }" 
+screen17line12 : string "}           }    }    }  }    }        }" 
+screen17line13 : string "}           }    }    }  }    }        }" 
+screen17line14 : string "}           }    }    }  }    }        }" 
+screen17line15 : string "}           }     }}}}    }}}}         }" 
+screen17line16 : string "}                                      }" 
+screen17line17 : string "}        }    }  }}}}}}  }    }        }" 
+screen17line18 : string "}        }    }     }    }    }        }" 
+screen17line19 : string "}        }    }     }    }}   }        }" 
+screen17line20 : string "}        }    }     }    } }  }        }" 
+screen17line21 : string "}        } }} }     }    }  } }        }" 
+screen17line22 : string "}        }}  }}     }    }   }}        }" 
+screen17line23 : string "}        }    }  }}}}}}  }    }        }" 
+screen17line24 : string "}                                      }" 
+screen17line25 : string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
+screen17line26 : string "                                        " 
+screen17line27 : string "               SCORE:                   " 
+screen17line28 : string "                                        " 
+screen17line29 : string "     press enter to return to menu      " 
+screen17line30 : string "                                        "
 
 ;------ Variables used in the program ------
 
@@ -549,7 +578,17 @@ levelFlag : var #1
 ; Stores the user's curent score
 score : var #3
 
-; 0: 1, 1: 2, 2: , 3: S
+; Seed for pseudoRandomGenerator
+seed : var #1
+
+; Random level button number
+rand : var #1
+
+; Sets the seed at the start of the game
+; 1 = SEED_SETED 
+; 0 = SEED_NOT_SETED
+setSeedFlag : var #1
+static setSeedFlag, #0
 
 ;---- Start of the program -----
 main:
@@ -572,6 +611,9 @@ main:
 		load r7, curLevel
 		
 		playing:
+			cmp r7,r4
+			jeq win
+		
 			call showScoreUp
 		
 			inc r7
@@ -588,6 +630,15 @@ main:
 			; If the user has completed the level correctly
 			cmp r1, r2  
 			jeq playing
+			
+		jmp getMenuPressedKey
+		
+		win:
+			loadn r1, #screen17line1
+			loadn r2, #512
+
+			call printScreen
+			call showScoreMid
 		
 		; Gets the user's pressed key
 		getMenuPressedKey:
@@ -600,6 +651,36 @@ main:
 			jmp getMenuPressedKey
 
 	halt
+
+
+showScoreMid:
+	push r0
+	push r1
+	push r2
+	push r3
+	
+	call convertScore
+	
+	loadn r0, #score
+	loadn r1, #1062
+	loadn r3, #1065
+	
+	showScoreUpLoop:
+		loadi r2, r0
+		outchar r2, r1
+		
+		inc r0
+		inc r1
+		
+		cmp r1, r3
+		jne showScoreUpLoop
+	
+	pop r3
+	pop r2
+	pop r1
+	pop r0
+	
+	rts
 
 ;---- Shows the current user's score in the upper-left corner ---- 
 showScoreUp:
@@ -675,15 +756,19 @@ convertScore:
 
 ;---- Shows the game's menu ---- 
 showMenu:
+	push r0
 	push r1
 	push r2
 	push r3 
 	push r4
 	push r5
 	push r6
+	push r7
 	
 	loadn r1, #screen15line1
 	loadn r2, #0
+	loadn r0, #89
+	loadn r7, #53
 	
 	call printScreen
 	call shortDelay
@@ -752,16 +837,32 @@ showMenu:
 		loadn r2, #0
 		
 		menuElse:
+		add r0,r0,r7
+		
 		inchar r3
-		cmp r3, r4	
+		cmp r3, r4
 		jeq showMenuLoop
 	
+	
+	loadn r6, #1
+	load r7, setSeedFlag
+	cmp r7,r6
+	jeq isSeedSeted
+	
+	store seed, r0
+	loadn r7,#1
+	store setSeedFlag,r7
+	
+	isSeedSeted:
+		
+	pop r7
 	pop r6
 	pop r5
 	pop r4
 	pop r3
 	pop r2
 	pop r1
+	pop r0
 	
 	rts
 
@@ -903,10 +1004,10 @@ verifyLevel:
 	
 	loadn r0,#levels
 	loadn r1,#0
-	load r2,sizeSequence
+	load r2, curLevel
 	loadn r4,#48
 	
-	verifySequenceLoop		
+	verifySequenceLoop:		
 		call getChar; Stores the user's pressed key 
 		load r3, pressedKey
 		
@@ -941,8 +1042,8 @@ verifyLevel:
 	
 	jmp verifyLevelEnd
 	
-; Blinks everything red
-levelFail:
+	; Blinks everything red
+	levelFail:
 	loadn r1, #screen1line1
 	loadn r2, #2304
 
@@ -977,7 +1078,7 @@ levelFail:
 	loadn r2, #0  
 	store levelFlag, r2
 	
-verifyLevelEnd:	
+	verifyLevelEnd:	
 	pop r7
 	pop r6
 	pop r5
@@ -988,25 +1089,26 @@ verifyLevelEnd:
 	pop r0
 	
 	rts
-	
+
+;---- Gets the input char  ----
 getChar:
 	push r1
 	push r0
 
-	loadn r1, #25
-	
-	5
+	loadn r1, #255
 	recebeCharLoop:
 		inchar r0 
-		cmp r0, r
+		cmp r0, r1
 		jeq recebeCharLoop
-; Stores the user's pressed key 
+
 	store pressedKey, r0 
 
 	pop r0
 	pop r1
+	
 	rts
 
+;---- Long delay for print screens ----
 longDelay:
 	push r0
 	push r1
@@ -1031,6 +1133,7 @@ longDelay:
 	
 	rts
 	
+;---- Short delay for print screens ----
 shortDelay:
 	push r0
 	push r1
@@ -1055,8 +1158,8 @@ shortDelay:
 	
 	rts
 
+;---- Shows the starting screen ----
 showStartScreen:
-	
 	loadn r1, #screen1line1
 	loadn r2, #0
 	
@@ -1092,13 +1195,8 @@ showStartScreen:
 	rts
 
 
-;	Gera um número pseudo-aleatório entre 0 e 498
-;	Utilizando o algoritmo The Linear Congruential Generator
-;	(seed*2 + 3) mod 499
-
-seed : var #1
-static seed, #89
-
+;---- Gerates an random number between 0 and 498 using a linear ----
+;     congruential generator algorithm: (seed*2 + 3) mod 499
 pseudoRandomGenerator:
 	push r0
 	push r1
@@ -1122,11 +1220,7 @@ pseudoRandomGenerator:
 	pop r0
 	rts
 
-;	Gera um número pseudo-aleatório entre 0 e 3
-;	(generateRand) mod 4
-
-rand : var #1
-
+;---- Gets a random number between 0 and 3 to initialize the sequence ----
 getRand:
 	push r0
 	push r1
@@ -1142,8 +1236,8 @@ getRand:
 	pop r0
 	rts
 
+;---- Initialize all levels with a random button at the start of the game ----
 initializeAllLevels:
-
 	push r1
 	push r2
 	push r3
