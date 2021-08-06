@@ -1,4 +1,5 @@
 jmp main
+
 main:
 	loadn r0, #5
 	loadn r1, #10
