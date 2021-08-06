@@ -67,7 +67,7 @@ Para esse trabalho, propomos a adição da instrução `addn` (add imediato). As
 
 ... Máquina de Estados
 
-                case ADDN:
+			case ADDN:
 	          		// reg[rx] += mem[PC];
 					selM3 = rx;
 					OP = ADDN;
@@ -80,16 +80,16 @@ Para esse trabalho, propomos a adição da instrução `addn` (add imediato). As
 
                 ... 
         
-        else if (selM4 == sIMM) M4 = MEMORY[PC]; // Seleciona o valor imediato
+        	else if (selM4 == sIMM) M4 = MEMORY[PC]; // Seleciona o valor imediato
 
 ... Ula 
-                case ADDN:
-					result = x + y;
-					if(result > MAX_VAL){// Carry
-						auxFRbits[CARRY] = 1;
-						result -= MAX_VAL;
-					}else
-						auxFRbits[CARRY] = 0;
+                	case ADDN:
+				result = x + y;
+				if(result > MAX_VAL){// Carry
+					auxFRbits[CARRY] = 1;
+					result -= MAX_VAL;
+				}else
+					auxFRbits[CARRY] = 0;
 
 ```
 
