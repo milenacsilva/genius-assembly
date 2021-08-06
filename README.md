@@ -11,3 +11,7 @@ João Victor Sene Araujo - **11796382**\
 Guilherme Lourenço de Toledo - **11795811**\
 Milena Corrêa da Silva - **11795401**
 
+## Jogo no simulador
+![Genius](https://i.imgur.com/mdcqDRs.gif)
+
+## Vídeo explicativo
