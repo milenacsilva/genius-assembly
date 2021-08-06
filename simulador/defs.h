@@ -1,11 +1,3 @@
-// Para incluir uma nova INSTRUCAO, e' necessario mexer em 3 ugares diferentes:
-// Definir o Codigo da Instrucao: 
-  // #define LOAD_CODE               1
-// Definir os Bits da Instrucao: 
-  // #define LOAD            "110000"
-// Definir a String de como a Instrucao deve aparecer no programa ASM:
-  // #define LOAD_STR                "LOAD"
-
 #ifndef _DEFS_
 #define _DEFS_
 
@@ -109,7 +101,7 @@
 #define NOP_CODE                0
 #define INPUT_CODE              96
 #define OUTPUT_CODE             97
-#define SLEEP_CODE              98 //TODO
+#define ADDN_CODE               98
 
 /* Definicoes dos op codes (binarios em strings) */
 
@@ -137,6 +129,7 @@
 #define DIV             "100011"
 #define INC             "100100"
 #define LMOD            "100101"
+#define ADDN            "101010"
 
 
 /* Logic Instructions (All should begin with "01"): */
@@ -164,7 +157,7 @@
 #define NOP             "000000"
 #define HALT            "001111"
 #define CLEARC          "001000"
-#define BREAKP		      "001110"
+#define BREAKP		"001110"
 
 /* Definicoes das condicoes (binarios em strings) */
 #define NO_COND         "0000"
@@ -182,12 +175,6 @@
 #define COND_NO         "1100"
 #define COND_DZ         "1101"
 #define COND_N          "1110"
-
-/* Nova funcao */
-
-#define ADDN           "101010" // 42d TODO
-#define ADDN_STR       "ADDN"
-#define ADDN_CODE       98
 
 
 /* Definicoes das strings das funcoes */
@@ -212,6 +199,7 @@
 /* ADD */
 #define ADD_STR                 "ADD"
 #define ADDC_STR                "ADDC"
+#define ADDN_STR                "ADDN"
 
 /* SUB */
 #define SUB_STR                 "SUB"
@@ -230,7 +218,7 @@
 #define OR_STR                  "OR"
 #define XOR_STR                 "XOR"
 #define NOT_STR                 "NOT"
-    
+
 /* SHIFT */
 #define SHIFTL0_STR             "SHIFTL0"
 #define SHIFTL1_STR             "SHIFTL1"

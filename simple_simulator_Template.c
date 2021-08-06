@@ -395,12 +395,14 @@ loop:
 					state=STATE_FETCH;
 					break;
 
-				case ADDN:
 					// reg[rx] += mem[PC];
-					// PC++;
+    		    case ADDN:
+	          		// reg[rx] += reg[ry];
+					selM3 = rx;
 					selM1 = sPC;
 					RW = 0;
-					selM2 = sDATA_OUT;
+					OP = ADDN;
+					selM2 = sULA;
 					LoadReg[rx] = 1;
 					IncPC = 1;
 					// -----------------------------
@@ -411,6 +413,7 @@ loop:
 				case SUB:
 				case MULT:
 				case DIV:
+				
 				case LMOD:
 				case LAND:
 				case LOR:

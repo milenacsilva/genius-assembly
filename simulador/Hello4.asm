@@ -1,4 +1,5 @@
+jmp main
 main:
 	loadn r0, #5
-	add r0, r0, r0
+	addn r0, #5
 	halt
