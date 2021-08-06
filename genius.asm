@@ -430,9 +430,9 @@ screen13line23 : string "}     }}}}     }}    }}}}}}  }    }    }"
 screen13line24 : string "}                                      }" 
 screen13line25 : string "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}" 
 screen13line26 : string "                                        " 
-screen13line27 : string "     press enter to return to menu      " 
+screen13line27 : string "               SCORE:                   " 
 screen13line28 : string "                                        " 
-screen13line29 : string "                                        " 
+screen13line29 : string "     press enter to return to menu      " 
 screen13line30 : string "                                        "
 
 screen14line1 :  string "SCORE:                                  " 
@@ -1068,8 +1068,12 @@ verifyLevel:
 	call longDelay
 	
 	loadn r1, #screen13line1
-
 	call printScreen
+	
+	load r2, curLevel
+	dec r2 
+	store curLevel, r2
+	call showScoreMid
 	
 	call longDelay
 	
