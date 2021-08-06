@@ -30,6 +30,7 @@ Do todos os comandos...
 #define sM4 2
 #define sSP 3
 
+
 // Selecao do Mux2
 #define sULA 0
 #define sDATA_OUT 1
@@ -40,6 +41,8 @@ Do todos os comandos...
 // Selecao do Mux3 --> E´ so´ colocar: 0, 1, 2 ... 7  para selecionar os Registradores
 
 // Selecao do Mux4 --> E´ so´ colocar: 0, 1, 2 ... 7  para selecionar os Registradores ou 8 para entrar o nr. 1
+
+#define sIMM -1
 
 // Selecao do Mux5
 //#define sPC 0
@@ -417,14 +420,12 @@ loop:
 					break;
 
     		    case ADDN:
-	          		// reg[rx] += reg[ry];
+	          		// reg[rx] += mem[PC];
 					selM3 = rx;
-					selM1 = sPC;
-					RW = 0;
 					OP = ADDN;
+					selM4 = sIMM;
 					selM2 = sULA;
 					LoadReg[rx] = 1;
-					IncPC = 1;
 					// -----------------------------
 					state=STATE_FETCH;
 					break;
@@ -453,7 +454,6 @@ loop:
 					//reg[rx]++;                                  // Inc Rx ou DEC
 					selM3 = rx;
 					selM4 = 8;  // 8 para selecionar o nr. 1 como entrada do MUX4
-
 					if(pega_pedaco(IR,6,6) == 0) OP = ADD;  // Se IR6 = 0 --> INC
 					else OP = SUB;                          // Se IR6 = 1 --> DEC
 
@@ -713,6 +713,7 @@ loop:
 
 	// Selecao do Mux4   --> Tem que vir antes do M1 e do M2 que usam M4
 	if(selM4 == 8) M4 = 1;  // Seleciona 1 para fazer INC e DEC
+	else if (selM4 == sIMM) M4 = MEMORY[PC]; // Seleciona o valor imediato
 	else M4 = reg[selM4];
 
 	// Selecao do Mux1
